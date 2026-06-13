@@ -432,7 +432,7 @@ const FILE_MAP = {
   // TARI MODERN
   'tari::Muhammad Faisyar Rizqi': 'src/TARI MODERN/Muhammad Faisyar Rizqi_Intro Fake Love + Chains.mp3',
   'tari::TRIARCHY': 'src/TARI MODERN/TRIARCHY[FROM ZERO TO ICONIC].mp4',
-  'tari::Miaw': 'src/TARI MODERN/miaw_Intro + What is love_ .mp3',
+  'tari::Miaw': 'src/TARI MODERN/miaw_intro + What is love_ .mp3',
   'tari::SERAPHIVE': 'src/TARI MODERN/SERAPHIVE_BLACK AND BOLD.mp3',
 };
 
@@ -838,6 +838,21 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 render();
 loadCurrentFile();
 updateStage();
+
+// Preload all audio files in background
+function preloadAllAudio() {
+  const paths = new Set();
+  Object.values(FILE_MAP).forEach(p => paths.add(p));
+  EXTRA_TRACKS.tari.forEach(t => paths.add(t.path));
+  let i = 0;
+  const arr = [...paths];
+  function loadNext() {
+    if (i >= arr.length) return;
+    fetch(arr[i++], { cache: 'force-cache' }).then(loadNext).catch(loadNext);
+  }
+  setTimeout(loadNext, 1000);
+}
+preloadAllAudio();
 </script>
 </body>
 </html>
