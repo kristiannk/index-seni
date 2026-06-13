@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stage Display — INDEX 1.0</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .4; }
+}
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 30px rgba(255,215,0,.1), 0 0 60px rgba(255,215,0,.05); }
+  50% { box-shadow: 0 0 40px rgba(255,215,0,.2), 0 0 80px rgba(255,215,0,.1); }
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  background: radial-gradient(ellipse at center, #1a0030 0%, #0d0018 50%, #050010 100%);
+  color: #fff;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+/* Geometric decorative elements */
+.geo-ring {
+  position: fixed;
+  border-radius: 50%;
+  border: 1px solid rgba(255,215,0,.06);
+  pointer-events: none;
+}
+.geo-ring.r1 {
+  width: 90vmin; height: 90vmin;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+}
+.geo-ring.r2 {
+  width: 70vmin; height: 70vmin;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-color: rgba(255,215,0,.04);
+}
+.geo-ring.r3 {
+  width: 50vmin; height: 50vmin;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  border-color: rgba(255,215,0,.03);
+}
+
+/* Subtle grid lines */
+.grid-lines {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+}
+
+/* Top bar gradient */
+.topbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #7d2ae8, #ffd700, #ff6b9d);
+  z-index: 10;
+}
+
+/* Brand top left */
+.brand {
+  position: fixed;
+  top: 24px;
+  left: 32px;
+  z-index: 10;
+  text-align: left;
+}
+.brand-main {
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  background: linear-gradient(135deg, #7d2ae8, #ffd700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.brand-sub {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.3);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Top right — institution logos area */
+.top-right {
+  position: fixed;
+  top: 20px;
+  right: 32px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  z-index: 10;
+}
+.top-right .logo-placeholder {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.top-right .logo-placeholder img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Main container */
+.container {
+  text-align: center;
+  padding: 40px;
+  max-width: 92vw;
+  animation: fadeIn .6s ease-out;
+  position: relative;
+  z-index: 1;
+}
+
+/* Central frame circle (decorative behind content) */
+.center-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 60vmin; height: 60vmin;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(125,42,232,.08) 0%, transparent 60%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Live indicator */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  margin-bottom: 36px;
+}
+.live-badge .dot {
+  width: 6px; height: 6px;
+  background: #ff4444;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.stage-label {
+  font-size: clamp(13px, 1.3vw, 20px);
+  font-weight: 600;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.25);
+  margin-bottom: 10px;
+}
+
+.category {
+  display: inline-block;
+  padding: 6px 22px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, rgba(125,42,232,.4), rgba(255,215,0,.15));
+  border: 1px solid rgba(255,215,0,.1);
+  font-size: clamp(11px, 1vw, 15px);
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.7);
+  margin-bottom: 30px;
+}
+
+/* Participant name — INDEX style gradient */
+.name-wrapper {
+  position: relative;
+  display: inline-block;
+  padding: 0 20px;
+}
+.name {
+  font-size: clamp(32px, 5vw, 72px);
+  font-weight: 900;
+  background: linear-gradient(135deg, #9d4eff, #ffd700, #ff6b9d);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  text-shadow: none;
+  filter: drop-shadow(0 0 40px rgba(125,42,232,.2));
+}
+
+/* Event name below */
+.event-name {
+  font-size: clamp(12px, 1.2vw, 18px);
+  font-weight: 700;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  margin-top: 12px;
+}
+
+.tagline {
+  font-size: clamp(10px, .9vw, 14px);
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,.2);
+  margin-top: 4px;
+}
+
+.number {
+  font-size: clamp(14px, 1.5vw, 22px);
+  color: rgba(255,255,255,.3);
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin-top: 20px;
+}
+
+/* Gradient divider */
+.divider {
+  width: 80px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,215,0,.4), transparent);
+  margin: 20px auto 0;
+  border-radius: 1px;
+}
+
+/* Status bar bottom */
+.status-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 32px;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  font-size: 10px;
+  color: rgba(255,255,255,.15);
+  letter-spacing: 1px;
+  z-index: 10;
+  border-top: 1px solid rgba(255,255,255,.03);
+}
+.status-bar .connected { color: rgba(0,196,204,.7); }
+.status-bar .disconnected { color: rgba(255,255,255,.15); }
+
+/* Idle */
+.idle {
+  font-size: clamp(18px, 2vw, 28px);
+  color: rgba(255,255,255,.1);
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+.idle-icon {
+  font-size: clamp(40px, 5vw, 64px);
+  margin-bottom: 16px;
+  opacity: .06;
+}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="grid-lines"></div>
+<div class="geo-ring r1"></div>
+<div class="geo-ring r2"></div>
+<div class="geo-ring r3"></div>
+
+<div class="brand">
+  <div class="brand-main">INDEX 1.0</div>
+  <div class="brand-sub">Informatics Dies Natalis Expo</div>
+</div>
+
+<div class="top-right">
+  <div class="logo-placeholder"><img src="hmti.jpg" alt="HMTI"></div>
+  <div class="logo-placeholder"><img src="umrah.png" alt="UMRAH"></div>
+</div>
+
+<div class="container">
+  <div class="center-glow"></div>
+  <div class="live-badge"><span class="dot"></span>LIVE</div>
+  <div class="stage-label">Now Performing</div>
+  <div class="category" id="categoryDisplay">—</div>
+  <div id="displayArea">
+    <div class="idle-icon">🎭</div>
+    <div class="idle">Menunggu operator...</div>
+  </div>
+</div>
+
+<div class="status-bar">
+  <span id="connectionStatus" class="disconnected">⏳ Menunggu koneksi...</span>
+  <span>INFORMATICS DIES NATALIS EXPO</span>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const displayArea = document.getElementById('displayArea');
+const categoryDisplay = document.getElementById('categoryDisplay');
+const connectionStatus = document.getElementById('connectionStatus');
+let lastState = null;
+
+function getCategory(tab) {
+  return tab === 'vokal' ? 'VOKAL SOLO' : 'TARI MODERN';
+}
+
+function updateDisplay(state) {
+  lastState = state;
+  if (!state || !state.name) {
+    categoryDisplay.textContent = '—';
+    displayArea.innerHTML = `
+      <div class="idle-icon">🎭</div>
+      <div class="idle">Menunggu operator...</div>
+    `;
+    connectionStatus.innerHTML = '<span class="disconnected">⏳ Menunggu koneksi...</span>';
+    return;
+  }
+  const cat = getCategory(state.tab);
+  categoryDisplay.textContent = cat;
+  displayArea.innerHTML = `
+    <div class="name-wrapper">
+      <div class="name">${state.name}</div>
+    </div>
+    <div class="event-name">Informatics Dies Natalis Expo</div>
+    <div class="tagline">Merayakan Kreativitas, Memperkuat Solidaritas</div>
+    <div class="number">Peserta ke-${state.index + 1} dari ${state.total}</div>
+    <div class="divider"></div>
+  `;
+  connectionStatus.innerHTML = '<span class="connected">● Terhubung</span>';
+}
+
+// Socket.IO
+let socket = null;
+try {
+  socket = io();
+  socket.on('connect', () => {
+    console.log('Backdrop connected');
+    socket.emit('request-state');
+  });
+  socket.on('state', (data) => {
+    updateDisplay(data);
+  });
+  socket.on('disconnect', () => {
+    connectionStatus.innerHTML = '<span class="disconnected">⏸ Terputus</span>';
+  });
+} catch(e) {
+  connectionStatus.textContent = 'Socket not available';
+}
+
+// Fallback: localStorage
+window.addEventListener('storage', (e) => {
+  if (e.key === 'seni-state') {
+    try {
+      const state = JSON.parse(e.newValue);
+      if (!lastState || state.timestamp !== lastState.timestamp) {
+        updateDisplay(state);
+      }
+    } catch {}
+  }
+});
+
+// On load, check localStorage
+try {
+  const saved = localStorage.getItem('seni-state');
+  if (saved) {
+    const state = JSON.parse(saved);
+    updateDisplay(state);
+  }
+} catch {}
+</script>
+</body>
+</html>

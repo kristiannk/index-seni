@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Operator Lomba Seni</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #0f0f0f;
+  color: #e0e0e0;
+  height: 100vh;
+  overflow: hidden;
+  user-select: none;
+}
+.app {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+}
+.sidebar {
+  background: #1a1a2e;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  border-right: 2px solid #2a2a4a;
+  overflow: hidden;
+  min-height: 0;
+}
+.sidebar h1 {
+  font-size: 18px;
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+.tab-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .2s;
+  background: #2a2a4a;
+  color: #888;
+}
+.tab-btn.active {
+  background: #ffd700;
+  color: #1a1a2e;
+  box-shadow: 0 0 12px rgba(255,215,0,.4);
+}
+.participant-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-right: 4px;
+  min-height: 0;
+}
+.participant-list::-webkit-scrollbar { width: 4px; }
+.participant-list::-webkit-scrollbar-thumb { background: #ffd700; border-radius: 4px; }
+.p-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #22223a;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 13px;
+  border-left: 3px solid transparent;
+}
+.p-item:hover { background: #2a2a4a; }
+.p-item.active {
+  background: #ffd700;
+  color: #1a1a2e;
+  font-weight: 700;
+  border-left-color: #fff;
+  box-shadow: 0 0 10px rgba(255,215,0,.3);
+}
+.p-item.done {
+  opacity: .4;
+  text-decoration: line-through;
+}
+.p-item .num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #2a2a4a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.p-item.active .num { background: rgba(0,0,0,.2); color: #1a1a2e; }
+.p-item .name { flex: 1; }
+.p-item .status-indicator {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.p-item .status-indicator.playing { background: #00ff88; box-shadow: 0 0 8px #00ff88; }
+.p-item .status-indicator.done { background: #ffd700; }
+.p-item .file-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #2a2a4a;
+  color: #666;
+  flex-shrink: 0;
+}
+.p-item.active .file-badge { background: rgba(0,0,0,.2); color: #1a1a2e; }
+.p-item .file-badge.ok { color: #00cc66; }
+.p-item .file-badge.missing { color: #cc3333; }
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  position: relative;
+  background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f0f 100%);
+}
+.stage-display {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.stage-label {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: #666;
+  margin-bottom: 8px;
+}
+.stage-category {
+  font-size: 16px;
+  color: #ffd700;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+}
+.stage-name {
+  font-size: min(5vw, 64px);
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 30px rgba(255,215,0,.5), 0 0 60px rgba(255,215,0,.2);
+  margin-bottom: 8px;
+}
+.stage-file {
+  font-size: 14px;
+  color: #888;
+  margin-top: 4px;
+}
+.stage-file .label { color: #555; }
+.stage-file .val { color: #aaa; }
+.stage-number {
+  font-size: 24px;
+  color: #888;
+  margin-top: 8px;
+}
+.controls {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
+.ctrl-btn {
+  width: 64px; height: 64px;
+  border: 2px solid #2a2a4a;
+  border-radius: 50%;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ctrl-btn:hover {
+  border-color: #ffd700;
+  color: #ffd700;
+  box-shadow: 0 0 20px rgba(255,215,0,.2);
+}
+.ctrl-btn:active { transform: scale(.92); }
+.ctrl-btn.play {
+  width: 80px; height: 80px;
+  background: #ffd700;
+  color: #1a1a2e;
+  border-color: #ffd700;
+  font-size: 32px;
+}
+.ctrl-btn.play:hover {
+  box-shadow: 0 0 30px rgba(255,215,0,.4);
+}
+.ctrl-btn:disabled {
+  opacity: .3;
+  cursor: not-allowed;
+}
+.ctrl-btn:disabled:hover {
+  border-color: #2a2a4a;
+  color: #e0e0e0;
+  box-shadow: none;
+}
+.file-section {
+  margin-top: 24px;
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.file-section select {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px dashed #2a2a4a;
+  border-radius: 8px;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23888'%3E%3Cpath d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+.file-section select:focus { border-color: #ffd700; }
+.file-section select.has-file { border-style: solid; border-color: #00cc66; }
+.file-section input[type="file"] { display: none; }
+.file-label {
+  padding: 10px 16px;
+  background: #1a1a2e;
+  border: 2px dashed #2a2a4a;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.file-label:hover {
+  border-color: #ffd700;
+  color: #ffd700;
+}
+.file-label.has-file {
+  border-style: solid;
+  border-color: #00cc66;
+  color: #00cc66;
+}
+.progress-bar {
+  width: 100%;
+  max-width: 500px;
+  height: 4px;
+  background: #2a2a4a;
+  border-radius: 2px;
+  margin-top: 12px;
+  cursor: pointer;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  background: #ffd700;
+  border-radius: 2px;
+  width: 0%;
+  transition: width .1s;
+}
+.time-display {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 500px;
+  font-size: 12px;
+  color: #666;
+  margin-top: 6px;
+}
+.queue-section {
+  margin-top: 16px;
+  text-align: center;
+}
+.queue-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+.queue-name {
+  font-size: 20px;
+  color: #aaa;
+}
+.key-hints {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  font-size: 11px;
+  color: #444;
+  text-align: right;
+  line-height: 1.8;
+}
+.toggle-done-btn {
+  margin-top: 10px;
+  padding: 8px 20px;
+  border: 1px solid #2a2a4a;
+  border-radius: 20px;
+  background: transparent;
+  color: #888;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .2s;
+}
+.toggle-done-btn:hover {
+  border-color: #ffd700;
+  color: #ffd700;
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="sidebar">
+    <h1>🎭 OPERATOR</h1>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="vokal">VOKAL SOLO</button>
+      <button class="tab-btn" data-tab="tari">TARI MODERN</button>
+    </div>
+    <div id="participant-container" class="participant-list"></div>
+    <div style="margin-top:8px;text-align:center;font-size:11px;color:#444;">
+      Klik nama utk pilih | Enter: next | Spasi: play
+    </div>
+  </div>
+  <div class="main">
+    <div class="stage-display">
+      <div class="stage-label">Now Performing</div>
+      <div class="stage-category" id="stageCategory">VOKAL SOLO</div>
+      <div class="stage-name" id="stageName">—</div>
+      <div class="stage-file" id="stageFile"></div>
+      <div class="stage-number" id="stageNumber">Peserta ke-</div>
+    </div>
+    <div class="controls">
+      <button class="ctrl-btn" id="btnPrev" title="Previous (←)">⏮</button>
+      <button class="ctrl-btn play" id="btnPlay" title="Play/Pause (Space)">▶</button>
+      <button class="ctrl-btn" id="btnNext" title="Next (Enter)">⏭</button>
+    </div>
+    <div class="file-section">
+      <select id="trackSelect">
+        <option value="">— Pilih backsound —</option>
+      </select>
+      <label class="file-label" id="uploadLabel" title="Upload manual">
+        <span>📁</span>
+        <input type="file" id="fileInput" accept="audio/*,video/*">
+      </label>
+    </div>
+    <div class="progress-bar" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="time-display">
+      <span id="currentTime">0:00</span>
+      <span id="duration">0:00</span>
+    </div>
+    <div class="queue-section">
+      <div class="queue-label">Selanjutnya</div>
+      <div class="queue-name" id="nextName">—</div>
+    </div>
+    <button class="toggle-done-btn" id="toggleDoneBtn">✓ Tandai selesai</button>
+    <div class="key-hints">
+      Spasi: Play &nbsp; ← →: Prev/Next &nbsp; Enter: Next
+    </div>
+  </div>
+</div>
+<audio id="audioPlayer" style="display:none"></audio>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const DATA = {
+  vokal: [
+    "Febriyani",
+    "M. Fathur Sadiq",
+    "Deni Kristiani Saragih",
+    "Asti Puji Lestari",
+    "Muhammad Fauzi",
+    "Solihin Ramadhan",
+    "Araghina Martha Undari",
+    "Felicia Isabella Ygo",
+    "Sindi Agustin",
+    "Yowanda Aviva Syahira",
+    "Ririn Dwi Sabrina Sembiring Kembaren",
+    "Elda Waruwu",
+    "Berliana Dwi Az-zahara",
+    "Stefani Oktavia Simbolon"
+  ],
+  tari: [
+    "CEAH",
+    "TRIARCHY",
+    "ShadowGirls",
+    "Muhammad Faisyar Rizqi",
+    "Miaw",
+    "SERAPHIVE",
+    "MJ"
+  ]
+};
+
+// === HARDCODED FILE MAPPINGS (relative to this HTML file) ===
+const FILE_MAP = {
+  // VOKAL SOLO
+  'vokal::Febriyani': 'src/VOKAL SOLO/FEBRIYANI.mp4',
+  'vokal::M. Fathur Sadiq': 'src/VOKAL SOLO/M. Fathur Sadiq ( sepenuh hati ).mp3',
+  'vokal::Deni Kristiani Saragih': 'src/VOKAL SOLO/Deni Kristiani Saragih - Mengejar Matahari_.mp4',
+  'vokal::Asti Puji Lestari': 'src/VOKAL SOLO/ASTI PUJI LESTARI_TAK KAN TERGANTI-SHABRINA LEANOR, YOVIE WIDIANTO.mp4',
+  'vokal::Muhammad Fauzi': 'src/VOKAL SOLO/Muhammad Fauzi_Sign of The Times.mp3',
+  'vokal::Solihin Ramadhan': 'src/VOKAL SOLO/Solihin_SORGA DIBAWAH TELAPAK KAKI IBU KARAOKE.mp3',
+  'vokal::Araghina Martha Undari': 'src/VOKAL SOLO/ARAGHINA MARTHA UNDARI_PERAHU KERTAS.mp4',
+  'vokal::Felicia Isabella Ygo': 'src/VOKAL SOLO/Felicia Isabella Ygo .mp3',
+  'vokal::Sindi Agustin': 'src/VOKAL SOLO/Sindi Agustin_Terlalu cinta_.mp4',
+  'vokal::Yowanda Aviva Syahira': 'src/VOKAL SOLO/Yowanda Aviva Syahira.NIRMALA.mp4',
+  'vokal::Ririn Dwi Sabrina Sembiring Kembaren': 'src/VOKAL SOLO/Ririn Sembiring_Boru Panggoaran.mp3',
+  'vokal::Berliana Dwi Az-zahara': 'src/VOKAL SOLO/Berliana Dwi Az-zahara_Jikalau kau cinta.mp4',
+  'vokal::Stefani Oktavia Simbolon': 'src/VOKAL SOLO/Stefani Oktavia Simbolon_Cinta Sejati (BCL).mp3',
+  // TARI MODERN
+  'tari::Muhammad Faisyar Rizqi': 'src/TARI MODERN/Muhammad Faisyar Rizqi_Intro Fake Love + Chains.mp3',
+  'tari::TRIARCHY': 'src/TARI MODERN/TRIARCHY[FROM ZERO TO ICONIC].mp4',
+  'tari::Miaw': 'src/TARI MODERN/miaw_Intro + What is love_ .mp3',
+  'tari::SERAPHIVE': 'src/TARI MODERN/SERAPHIVE_BLACK AND BOLD.mp3',
+};
+
+// Extra tracks for TARI MODERN (unassigned — user picks via dropdown)
+const EXTRA_TRACKS = {
+  tari: [
+    { label: 'TRIARCHY [FROM ZERO TO ICONIC]', path: 'src/TARI MODERN/TRIARCHY[FROM ZERO TO ICONIC].mp4' },
+    { label: 'miaw intro + What is Love', path: 'src/TARI MODERN/miaw_intro + What is love_ .mp3' },
+    { label: 'SERAPHIVE — BLACK AND BOLD', path: 'src/TARI MODERN/SERAPHIVE_BLACK AND BOLD.mp3' },
+  ]
+};
+
+// ===========================================
+
+let currentTab = 'vokal';
+let currentIndex = 0;
+let pendingExtraPath = null;
+
+// === Socket.IO untuk komunikasi realtime ===
+let socket = null;
+try {
+  socket = io();
+  socket.on('connect', () => {
+    console.log('Socket connected:', socket.id);
+    // Broadcast current state on reconnect
+    broadcastState();
+  });
+} catch(e) { console.log('Socket not available'); }
+
+const audio = document.getElementById('audioPlayer');
+const container = document.getElementById('participant-container');
+const stageName = document.getElementById('stageName');
+const stageNumber = document.getElementById('stageNumber');
+const stageCategory = document.getElementById('stageCategory');
+const stageFile = document.getElementById('stageFile');
+const nextName = document.getElementById('nextName');
+const btnPlay = document.getElementById('btnPlay');
+const btnPrev = document.getElementById('btnPrev');
+const btnNext = document.getElementById('btnNext');
+const fileInput = document.getElementById('fileInput');
+const uploadLabel = document.getElementById('uploadLabel');
+const trackSelect = document.getElementById('trackSelect');
+const progressFill = document.getElementById('progressFill');
+const currentTimeEl = document.getElementById('currentTime');
+const durationEl = document.getElementById('duration');
+const progressBar = document.getElementById('progressBar');
+const toggleDoneBtn = document.getElementById('toggleDoneBtn');
+
+let doneSet = new Set(loadDone());
+let localOverrides = loadOverrides();
+
+function getParticipants() { return DATA[currentTab]; }
+
+function loadDone() {
+  try { return JSON.parse(localStorage.getItem('doneSet') || '[]'); } catch { return []; }
+}
+function saveDone() {
+  localStorage.setItem('doneSet', JSON.stringify([...doneSet]));
+}
+function loadOverrides() {
+  try { return JSON.parse(localStorage.getItem('fileOverrides') || '{}'); } catch { return {}; }
+}
+function saveOverrides() {
+  localStorage.setItem('fileOverrides', JSON.stringify(localOverrides));
+}
+
+function formatTime(s) {
+  if (isNaN(s)) return '0:00';
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return m + ':' + (sec < 10 ? '0' : '') + sec;
+}
+
+function getKey(name, tab) { return tab + '::' + name; }
+
+function resolvePath(key) {
+  // Check local override first
+  if (localOverrides[key]) return localOverrides[key];
+  // Check hardcoded map
+  if (FILE_MAP[key]) return FILE_MAP[key];
+  return null;
+}
+
+function getExtraTracks() {
+  return EXTRA_TRACKS[currentTab] || [];
+}
+
+function populateSelect() {
+  trackSelect.innerHTML = '<option value="">— Pilih backsound —</option>';
+  const participants = getParticipants();
+  const name = participants[currentIndex];
+  const key = getKey(name, currentTab);
+  const currentPath = resolvePath(key);
+
+  // Add participant's current file if it exists
+  if (currentPath) {
+    const label = currentPath.split(/[\\/]/).pop();
+    const opt = document.createElement('option');
+    opt.value = currentPath;
+    opt.textContent = '✔ ' + label;
+    opt.selected = true;
+    trackSelect.appendChild(opt);
+    trackSelect.classList.add('has-file');
+  } else {
+    trackSelect.classList.remove('has-file');
+  }
+
+  // Divider
+  const div = document.createElement('option');
+  div.disabled = true;
+  div.textContent = '──────────';
+  trackSelect.appendChild(div);
+
+  // Add extra tracks for this tab
+  getExtraTracks().forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.path;
+    opt.textContent = t.label;
+    if (t.path === currentPath) opt.selected = true;
+    trackSelect.appendChild(opt);
+  });
+}
+
+function render() {
+  const participants = getParticipants();
+  const activeKey = getKey(participants[currentIndex], currentTab);
+  let html = '';
+  participants.forEach((name, i) => {
+    const key = getKey(name, currentTab);
+    const isActive = i === currentIndex;
+    const isDone = doneSet.has(key);
+    const hasFile = !!resolvePath(key);
+    const icon = isDone ? '✓' : (i + 1);
+    html += `<div class="p-item${isActive ? ' active' : ''}${isDone ? ' done' : ''}" data-index="${i}" data-key="${key}">
+      <div class="num">${icon}</div>
+      <span class="name">${name}</span>
+      <span class="file-badge ${hasFile ? 'ok' : 'missing'}">${hasFile ? '🎵' : '⚠'}</span>
+      <span class="status-indicator ${isActive && !audio.paused ? 'playing' : ''}${isDone && !isActive ? 'done' : ''}"></span>
+    </div>`;
+  });
+  container.innerHTML = html;
+
+  container.querySelectorAll('.p-item').forEach(el => {
+    el.addEventListener('click', () => {
+      currentIndex = parseInt(el.dataset.index);
+      render();
+      updateStage();
+      loadCurrentFile();
+    });
+  });
+
+  updateStage();
+  broadcastState();
+}
+
+function updateStage() {
+  const participants = getParticipants();
+  const p = participants[currentIndex];
+  const key = getKey(p, currentTab);
+  stageName.textContent = p;
+  stageNumber.textContent = `Peserta ke-${currentIndex + 1} dari ${participants.length}`;
+  stageCategory.textContent = currentTab === 'vokal' ? 'VOKAL SOLO' : 'TARI MODERN';
+
+  const path = resolvePath(key);
+  if (path) {
+    const fn = path.split(/[\\/]/).pop();
+    stageFile.innerHTML = `<span class="label">Backsound:</span> <span class="val">${fn}</span>`;
+  } else {
+    stageFile.innerHTML = `<span class="label">Backsound:</span> <span class="val" style="color:#cc3333;">Belum dipilih</span>`;
+  }
+
+  if (currentIndex + 1 < participants.length) {
+    nextName.textContent = participants[currentIndex + 1];
+  } else {
+    nextName.textContent = '— (terakhir)';
+  }
+
+  const key2 = getKey(p, currentTab);
+  toggleDoneBtn.textContent = doneSet.has(key2) ? '↩ Batalkan selesai' : '✓ Tandai selesai';
+
+  const activeEl = container.querySelector('.p-item.active');
+  if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function broadcastState() {
+  const participants = getParticipants();
+  const p = participants[currentIndex];
+  const next = currentIndex + 1 < participants.length ? participants[currentIndex + 1] : null;
+  const state = {
+    type: 'state',
+    tab: currentTab,
+    name: p,
+    index: currentIndex,
+    total: participants.length,
+    nextName: next,
+    timestamp: Date.now()
+  };
+  try {
+    if (socket && socket.connected) socket.emit('state', state);
+    localStorage.setItem('seni-state', JSON.stringify(state));
+  } catch(e) {}
+}
+
+function loadCurrentFile() {
+  const participants = getParticipants();
+  const name = participants[currentIndex];
+  const key = getKey(name, currentTab);
+  const path = resolvePath(key);
+
+  populateSelect();
+
+  if (path) {
+    if (audio.src !== path) {
+      audio.src = path;
+      audio.load();
+    }
+    uploadLabel.classList.add('has-file');
+  } else {
+    uploadLabel.classList.remove('has-file');
+  }
+}
+
+btnPlay.addEventListener('click', () => {
+  const key = getKey(getParticipants()[currentIndex], currentTab);
+  const path = resolvePath(key);
+  if (!path) {
+    trackSelect.focus();
+    return;
+  }
+  if (audio.paused) {
+    if (audio.src !== path) {
+      audio.src = path;
+      audio.load();
+    }
+    audio.play().catch(() => {});
+  } else {
+    audio.pause();
+  }
+});
+
+btnNext.addEventListener('click', goNext);
+btnPrev.addEventListener('click', goPrev);
+
+function goNext() {
+  const participants = getParticipants();
+  if (currentIndex < participants.length - 1) {
+    audio.pause();
+    audio.currentTime = 0;
+    btnPlay.textContent = '▶';
+    currentIndex++;
+    render();
+    updateStage();
+    loadCurrentFile();
+  }
+}
+
+function goPrev() {
+  if (currentIndex > 0) {
+    audio.pause();
+    audio.currentTime = 0;
+    btnPlay.textContent = '▶';
+    currentIndex--;
+    render();
+    updateStage();
+    loadCurrentFile();
+  }
+}
+
+// Select change — pick a track for current participant
+trackSelect.addEventListener('change', () => {
+  const val = trackSelect.value;
+  const participants = getParticipants();
+  const name = participants[currentIndex];
+  const key = getKey(name, currentTab);
+  if (val) {
+    localOverrides[key] = val;
+    saveOverrides();
+    uploadLabel.classList.add('has-file');
+    audio.src = val;
+    audio.load();
+    render();
+    updateStage();
+    populateSelect();
+  }
+});
+
+// Upload manual
+fileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const participants = getParticipants();
+  const name = participants[currentIndex];
+  const key = getKey(name, currentTab);
+  const url = URL.createObjectURL(file);
+  localOverrides[key] = url;
+  saveOverrides();
+  audio.src = url;
+  audio.load();
+  uploadLabel.classList.add('has-file');
+  render();
+  updateStage();
+  populateSelect();
+});
+
+audio.addEventListener('loadedmetadata', () => {
+  durationEl.textContent = formatTime(audio.duration);
+});
+
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) {
+    const pct = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = pct + '%';
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+  }
+  const participants = getParticipants();
+  const key = getKey(participants[currentIndex], currentTab);
+  const indicator = container.querySelector(`.p-item[data-key="${key}"] .status-indicator`);
+  if (indicator) indicator.className = 'status-indicator' + (audio.paused ? '' : ' playing');
+});
+
+audio.addEventListener('ended', () => { btnPlay.textContent = '▶'; render(); });
+audio.addEventListener('play', () => { btnPlay.textContent = '⏸'; render(); });
+audio.addEventListener('pause', () => { btnPlay.textContent = '▶'; render(); });
+
+audio.addEventListener('error', () => {
+  if (!audio.src) return;
+  uploadLabel.style.borderColor = '#cc3333';
+  uploadLabel.style.color = '#cc3333';
+  setTimeout(() => { uploadLabel.style.borderColor = ''; uploadLabel.style.color = ''; }, 2000);
+});
+
+toggleDoneBtn.addEventListener('click', () => {
+  const participants = getParticipants();
+  const name = participants[currentIndex];
+  const key = getKey(name, currentTab);
+  if (doneSet.has(key)) doneSet.delete(key);
+  else doneSet.add(key);
+  saveDone();
+  render();
+  updateStage();
+});
+
+// Keyboard
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  switch(e.key) {
+    case ' ': e.preventDefault(); btnPlay.click(); break;
+    case 'ArrowRight': case 'Enter': e.preventDefault(); goNext(); break;
+    case 'ArrowLeft': e.preventDefault(); goPrev(); break;
+  }
+});
+
+progressBar.addEventListener('click', (e) => {
+  if (!audio.duration) return;
+  const rect = progressBar.getBoundingClientRect();
+  audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
+});
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    audio.pause();
+    audio.currentTime = 0;
+    btnPlay.textContent = '▶';
+    currentTab = btn.dataset.tab;
+    currentIndex = 0;
+    render();
+    updateStage();
+    loadCurrentFile();
+  });
+});
+
+// Init
+render();
+updateStage();
+loadCurrentFile();
+</script>
+</body>
+</html>

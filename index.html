@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INDEX 1.0</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: radial-gradient(ellipse at center, #1a0030, #050010);
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 2rem;
+  }
+  h1 { font-size: 3rem; background: linear-gradient(135deg, #b388ff, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  p { color: #999; font-size: 1.1rem; }
+  .links { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+  .links a {
+    background: linear-gradient(135deg, #7d2ae8, #b388ff);
+    color: #fff;
+    text-decoration: none;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: transform .2s;
+  }
+  .links a:hover { transform: scale(1.05); }
+  .links a.ghost { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+</style>
+</head>
+<body>
+  <h1>INDEX 1.0</h1>
+  <p>Pilih halaman yang ingin dibuka:</p>
+  <div class="links">
+    <a href="/operator.html">🎛 Panel Operator</a>
+    <a href="/backdrop.html" class="ghost">🖥 Stage Backdrop</a>
+  </div>
+</body>
+</html>
