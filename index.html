@@ -16,7 +16,7 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: 2rem;
+    gap: 1.5rem;
   }
   h1 { font-size: 3rem; background: linear-gradient(135deg, #b388ff, #ffd700); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   p { color: #999; font-size: 1.1rem; }
@@ -33,6 +33,14 @@
   }
   .links a:hover { transform: scale(1.05); }
   .links a.ghost { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); }
+  #loadStatus {
+    font-size: 12px;
+    color: rgba(255,255,255,.2);
+    letter-spacing: 1px;
+    margin-top: 8px;
+  }
+  #loadStatus.loading { color: rgba(255,215,0,.4); }
+  #loadStatus.done { color: rgba(0,196,204,.5); }
 </style>
 </head>
 <body>
@@ -42,5 +50,57 @@
     <a href="/operator.html">🎛 Panel Operator</a>
     <a href="/backdrop.html" class="ghost">🖥 Stage Backdrop</a>
   </div>
+  <div id="loadStatus">⏳ Preloading audio files...</div>
+  <script>
+  const FILE_MAP = {
+    'vokal::Febriyani': 'src/VOKAL SOLO/FEBRIYANI.mp4',
+    'vokal::M. Fathur Sadiq': 'src/VOKAL SOLO/M. Fathur Sadiq ( sepenuh hati ).mp3',
+    'vokal::Deni Kristiani Saragih': 'src/VOKAL SOLO/Deni Kristiani Saragih - Mengejar Matahari_.mp4',
+    'vokal::Asti Puji Lestari': 'src/VOKAL SOLO/ASTI PUJI LESTARI_TAK KAN TERGANTI-SHABRINA LEANOR, YOVIE WIDIANTO.mp4',
+    'vokal::Muhammad Fauzi': 'src/VOKAL SOLO/Muhammad Fauzi_Sign of The Times.mp3',
+    'vokal::Solihin Ramadhan': 'src/VOKAL SOLO/Solihin_SORGA DIBAWAH TELAPAK KAKI IBU KARAOKE.mp3',
+    'vokal::Araghina Martha Undari': 'src/VOKAL SOLO/ARAGHINA MARTHA UNDARI_PERAHU KERTAS.mp4',
+    'vokal::Felicia Isabella Ygo': 'src/VOKAL SOLO/Felicia Isabella Ygo .mp3',
+    'vokal::Sindi Agustin': 'src/VOKAL SOLO/Sindi Agustin_Terlalu cinta_.mp4',
+    'vokal::Yowanda Aviva Syahira': 'src/VOKAL SOLO/Yowanda Aviva Syahira.NIRMALA.mp4',
+    'vokal::Ririn Dwi Sabrina Sembiring Kembaren': 'src/VOKAL SOLO/Ririn Sembiring_Boru Panggoaran.mp3',
+    'vokal::Berliana Dwi Az-zahara': 'src/VOKAL SOLO/Berliana Dwi Az-zahara_Jikalau kau cinta.mp4',
+    'vokal::Stefani Oktavia Simbolon': 'src/VOKAL SOLO/Stefani Oktavia Simbolon_Cinta Sejati (BCL).mp3',
+    'tari::Muhammad Faisyar Rizqi': 'src/TARI MODERN/Muhammad Faisyar Rizqi_Intro Fake Love + Chains.mp3',
+    'tari::TRIARCHY': 'src/TARI MODERN/TRIARCHY[FROM ZERO TO ICONIC].mp4',
+    'tari::Miaw': 'src/TARI MODERN/miaw_intro + What is love_ .mp3',
+    'tari::SERAPHIVE': 'src/TARI MODERN/SERAPHIVE_BLACK AND BOLD.mp3',
+  };
+  const EXTRA_TRACKS = {
+    tari: [
+      { label: 'TRIARCHY [FROM ZERO TO ICONIC]', path: 'src/TARI MODERN/TRIARCHY[FROM ZERO TO ICONIC].mp4' },
+      { label: 'miaw intro + What is Love', path: 'src/TARI MODERN/miaw_intro + What is love_ .mp3' },
+      { label: 'SERAPHIVE — BLACK AND BOLD', path: 'src/TARI MODERN/SERAPHIVE_BLACK AND BOLD.mp3' },
+    ]
+  };
+
+  (function preloadAll() {
+    const paths = new Set();
+    Object.values(FILE_MAP).forEach(p => paths.add(p));
+    EXTRA_TRACKS.tari.forEach(t => paths.add(t.path));
+    const arr = [...paths];
+    const total = arr.length;
+    const status = document.getElementById('loadStatus');
+    let loaded = 0;
+    const concurrency = 3;
+    let i = 0;
+    function loadNext() {
+      if (i >= arr.length) {
+        if (loaded === total) status.textContent = '✓ Semua file siap';
+        return;
+      }
+      fetch(arr[i++], { cache: 'force-cache' })
+        .then(() => { loaded++; status.textContent = '⏳ Preloading ' + loaded + '/' + total; loadNext(); })
+        .catch(() => { loaded++; loadNext(); });
+    }
+    status.className = 'loading';
+    for (let c = 0; c < concurrency; c++) loadNext();
+  })();
+  </script>
 </body>
 </html>
