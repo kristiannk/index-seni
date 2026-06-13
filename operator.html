@@ -844,15 +844,17 @@ function preloadAllAudio() {
   const paths = new Set();
   Object.values(FILE_MAP).forEach(p => paths.add(p));
   EXTRA_TRACKS.tari.forEach(t => paths.add(t.path));
-  let i = 0;
   const arr = [...paths];
+  // Load 3 files in parallel at a time
+  const concurrency = 3;
+  let i = 0;
   function loadNext() {
     if (i >= arr.length) return;
     fetch(arr[i++], { cache: 'force-cache' }).then(loadNext).catch(loadNext);
   }
-  setTimeout(loadNext, 1000);
+  for (let c = 0; c < concurrency; c++) loadNext();
 }
-preloadAllAudio();
+setTimeout(preloadAllAudio, 500);
 </script>
 </body>
 </html>
