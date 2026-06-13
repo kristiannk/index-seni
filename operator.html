@@ -617,10 +617,18 @@ function updateStage() {
   if (activeEl) activeEl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }
 
+let broadcastTimeThrottle = 0;
+
 function broadcastState() {
   const participants = getParticipants();
   const p = participants[currentIndex];
   const next = currentIndex + 1 < participants.length ? participants[currentIndex + 1] : null;
+
+  // Audio sync info
+  const isBlob = audio.src && audio.src.startsWith('blob:');
+  // Only send audioFile if it's a server path (not a blob from manual upload)
+  const audioFile = (!isBlob && audio.src) || null;
+
   const state = {
     type: 'state',
     tab: currentTab,
@@ -628,13 +636,37 @@ function broadcastState() {
     index: currentIndex,
     total: participants.length,
     nextName: next,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    // Playback sync
+    audioFile: audioFile,
+    audioPlaying: !audio.paused,
+    audioTime: audio.currentTime || 0
   };
   try {
     if (socket && socket.connected) socket.emit('state', state);
     localStorage.setItem('seni-state', JSON.stringify(state));
   } catch(e) {}
 }
+
+// Throttled broadcast for time sync while playing
+audio.addEventListener('timeupdate', () => {
+  if (audio.duration) {
+    const pct = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = pct + '%';
+    currentTimeEl.textContent = formatTime(audio.currentTime);
+  }
+  const participants = getParticipants();
+  const key = getKey(participants[currentIndex], currentTab);
+  const indicator = container.querySelector(`.p-item[data-key="${key}"] .status-indicator`);
+  if (indicator) indicator.className = 'status-indicator' + (audio.paused ? '' : ' playing');
+
+  // Broadcast playback state at most every 800ms while playing
+  const now = Date.now();
+  if (!audio.paused && now - broadcastTimeThrottle > 800) {
+    broadcastTimeThrottle = now;
+    broadcastState();
+  }
+});
 
 function loadCurrentFile() {
   const participants = getParticipants();
@@ -739,18 +771,6 @@ fileInput.addEventListener('change', (e) => {
 
 audio.addEventListener('loadedmetadata', () => {
   durationEl.textContent = formatTime(audio.duration);
-});
-
-audio.addEventListener('timeupdate', () => {
-  if (audio.duration) {
-    const pct = (audio.currentTime / audio.duration) * 100;
-    progressFill.style.width = pct + '%';
-    currentTimeEl.textContent = formatTime(audio.currentTime);
-  }
-  const participants = getParticipants();
-  const key = getKey(participants[currentIndex], currentTab);
-  const indicator = container.querySelector(`.p-item[data-key="${key}"] .status-indicator`);
-  if (indicator) indicator.className = 'status-indicator' + (audio.paused ? '' : ' playing');
 });
 
 audio.addEventListener('ended', () => { btnPlay.textContent = '▶'; render(); });

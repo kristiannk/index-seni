@@ -321,15 +321,50 @@ body {
   <span>INFORMATICS DIES NATALIS EXPO</span>
 </div>
 
+<audio id="backdropAudio" style="display:none"></audio>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const displayArea = document.getElementById('displayArea');
 const categoryDisplay = document.getElementById('categoryDisplay');
 const connectionStatus = document.getElementById('connectionStatus');
+const backdropAudio = document.getElementById('backdropAudio');
 let lastState = null;
+let currentAudioFile = null;
 
 function getCategory(tab) {
   return tab === 'vokal' ? 'VOKAL SOLO' : 'TARI MODERN';
+}
+
+function syncAudio(state) {
+  if (!state || !state.audioFile) {
+    // No audio to sync — pause if playing
+    if (!backdropAudio.paused) {
+      backdropAudio.pause();
+    }
+    currentAudioFile = null;
+    return;
+  }
+
+  // Load new file if changed
+  if (state.audioFile !== currentAudioFile) {
+    currentAudioFile = state.audioFile;
+    backdropAudio.src = state.audioFile;
+    backdropAudio.load();
+  }
+
+  // Sync playback position
+  const timeDiff = Math.abs(backdropAudio.currentTime - state.audioTime);
+  if (timeDiff > 1.5 && backdropAudio.readyState > 0) {
+    backdropAudio.currentTime = state.audioTime;
+  }
+
+  // Sync play/pause
+  if (state.audioPlaying && backdropAudio.paused) {
+    backdropAudio.play().catch(() => {});
+  } else if (!state.audioPlaying && !backdropAudio.paused) {
+    backdropAudio.pause();
+  }
 }
 
 function updateDisplay(state) {
@@ -355,7 +390,20 @@ function updateDisplay(state) {
     <div class="divider"></div>
   `;
   connectionStatus.innerHTML = '<span class="connected">● Terhubung</span>';
+
+  // Sync audio
+  syncAudio(state);
 }
+
+// Handle seek events from backdrop for fine-tuning
+let lastSeek = 0;
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowLeft') {
+    backdropAudio.currentTime = Math.max(0, backdropAudio.currentTime - 5);
+  } else if (e.key === 'ArrowRight') {
+    backdropAudio.currentTime = Math.min(backdropAudio.duration || 0, backdropAudio.currentTime + 5);
+  }
+});
 
 // Socket.IO
 let socket = null;
