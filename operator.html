@@ -579,8 +579,8 @@ function render() {
     el.addEventListener('click', () => {
       currentIndex = parseInt(el.dataset.index);
       render();
-      updateStage();
       loadCurrentFile();
+      updateStage();
     });
   });
 
@@ -624,10 +624,11 @@ function broadcastState() {
   const p = participants[currentIndex];
   const next = currentIndex + 1 < participants.length ? participants[currentIndex + 1] : null;
 
-  // Audio sync info
+  // Only send audio info when actually playing
   const isBlob = audio.src && audio.src.startsWith('blob:');
-  // Only send audioFile if it's a server path (not a blob from manual upload)
-  const audioFile = (!isBlob && audio.src) || null;
+  const isPlaying = !audio.paused;
+  const audioFile = (isPlaying && !isBlob && audio.src) ? audio.src : null;
+  const audioTime = isPlaying ? (audio.currentTime || 0) : 0;
 
   const state = {
     type: 'state',
@@ -637,10 +638,9 @@ function broadcastState() {
     total: participants.length,
     nextName: next,
     timestamp: Date.now(),
-    // Playback sync
     audioFile: audioFile,
-    audioPlaying: !audio.paused,
-    audioTime: audio.currentTime || 0
+    audioPlaying: isPlaying,
+    audioTime: audioTime
   };
   try {
     if (socket && socket.connected) socket.emit('state', state);
@@ -700,8 +700,10 @@ btnPlay.addEventListener('click', () => {
       audio.load();
     }
     audio.play().catch(() => {});
+    broadcastState(); // immediate sync
   } else {
     audio.pause();
+    broadcastState(); // immediate sync
   }
 });
 
@@ -716,8 +718,8 @@ function goNext() {
     btnPlay.textContent = '▶';
     currentIndex++;
     render();
-    updateStage();
     loadCurrentFile();
+    updateStage();
   }
 }
 
@@ -728,8 +730,8 @@ function goPrev() {
     btnPlay.textContent = '▶';
     currentIndex--;
     render();
-    updateStage();
     loadCurrentFile();
+    updateStage();
   }
 }
 
@@ -822,15 +824,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     currentTab = btn.dataset.tab;
     currentIndex = 0;
     render();
-    updateStage();
     loadCurrentFile();
+    updateStage();
   });
 });
 
 // Init
 render();
-updateStage();
 loadCurrentFile();
+updateStage();
 </script>
 </body>
 </html>
