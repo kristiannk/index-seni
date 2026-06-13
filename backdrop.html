@@ -20,10 +20,6 @@
   0%, 100% { opacity: 1; }
   50% { opacity: .4; }
 }
-@keyframes scanline {
-  0% { top: -10%; }
-  100% { top: 110%; }
-}
 @keyframes nameGlow {
   0%, 100% { filter: drop-shadow(0 0 30px rgba(125,42,232,.2)) drop-shadow(0 0 60px rgba(255,215,0,.1)); }
   50% { filter: drop-shadow(0 0 50px rgba(125,42,232,.4)) drop-shadow(0 0 100px rgba(255,215,0,.2)); }
@@ -60,17 +56,6 @@ body {
   background-size: 60px 60px;
   pointer-events: none;
   z-index: 0;
-}
-
-/* Scanline effect */
-.scanline {
-  position: fixed;
-  top: -10%; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(255,215,0,.08), transparent);
-  pointer-events: none;
-  z-index: 0;
-  animation: scanline 8s linear infinite;
 }
 
 /* Top bar gradient */
@@ -306,7 +291,6 @@ body {
 <body>
 <div class="topbar"></div>
 <div class="grid-lines"></div>
-<div class="scanline"></div>
 <div class="transition-overlay" id="transitionOverlay"></div>
 
 <canvas id="particleCanvas"></canvas>
