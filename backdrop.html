@@ -392,23 +392,27 @@ function drawParticles() {
 
 // ===== SYNC AUDIO =====
 function syncAudio(state) {
-  if (!state || !state.audioFile) {
-    if (!backdropAudio.paused) backdropAudio.pause();
-    currentAudioFile = null;
-    return;
-  }
-
-  if (state.audioFile !== currentAudioFile) {
+  // Pre-load audio file as soon as participant is selected
+  if (state && state.audioFile && state.audioFile !== currentAudioFile) {
     currentAudioFile = state.audioFile;
     backdropAudio.src = state.audioFile;
     backdropAudio.load();
   }
 
-  const timeDiff = Math.abs(backdropAudio.currentTime - state.audioTime);
-  if (timeDiff > 1.5 && backdropAudio.readyState > 0) {
-    backdropAudio.currentTime = state.audioTime;
+  if (!state || !state.audioFile) {
+    if (!backdropAudio.paused) backdropAudio.pause();
+    return;
   }
 
+  // Sync position when playing
+  if (state.audioPlaying) {
+    const timeDiff = Math.abs(backdropAudio.currentTime - state.audioTime);
+    if (timeDiff > 1.5 && backdropAudio.readyState > 0) {
+      backdropAudio.currentTime = state.audioTime;
+    }
+  }
+
+  // Sync play/pause
   if (state.audioPlaying && backdropAudio.paused) {
     backdropAudio.play().catch(() => {});
   } else if (!state.audioPlaying && !backdropAudio.paused) {

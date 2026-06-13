@@ -624,10 +624,10 @@ function broadcastState() {
   const p = participants[currentIndex];
   const next = currentIndex + 1 < participants.length ? participants[currentIndex + 1] : null;
 
-  // Only send audio info when actually playing
+  // Always send audioFile so backdrop can pre-load on participant switch
   const isBlob = audio.src && audio.src.startsWith('blob:');
+  const audioFile = (!isBlob && audio.src) ? audio.src : null;
   const isPlaying = !audio.paused;
-  const audioFile = (isPlaying && !isBlob && audio.src) ? audio.src : null;
   const audioTime = isPlaying ? (audio.currentTime || 0) : 0;
 
   const state = {
