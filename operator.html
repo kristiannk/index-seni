@@ -674,6 +674,11 @@ function loadCurrentFile() {
   const key = getKey(name, currentTab);
   const path = resolvePath(key);
 
+  // Reset display immediately
+  currentTimeEl.textContent = '0:00';
+  durationEl.textContent = '0:00';
+  progressFill.style.width = '0%';
+
   populateSelect();
 
   if (path) {
